@@ -26,7 +26,22 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from taxiserver.models import User
+from taxiserver.models import User, Car, Booking
+from taxiserver.serializers import UserSerializer, CarsSerializer, BookingSerializer
+
+
+class CarsList(generics.ListCreateAPIView):
+    serializer_class = CarsSerializer
+    queryset = Car.objects.all()
+
+class BookingDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = BookingSerializer
+    queryset = Booking.objects.all()
+
+class BookingList(generics.ListCreateAPIView):
+    serializer_class = BookingSerializer
+    queryset = Booking.objects.all()
+
 
 # Create your views here.
 class RegisterDriver(APIView):
@@ -45,7 +60,7 @@ class RegisterDriver(APIView):
 def register_user(request):
     body = json.loads(request.body)
     try:
-        user = User.objects.create_user(body['name'], body['email'], body['password'])
+        user = User.objects.create_user(body['email'], body['password'], body['name'])
         user.save()
         return JsonResponse({'success': "Registered as normal User."})
     except Exception as e:
@@ -57,14 +72,16 @@ def register_user(request):
 def login_request(request):
     if request.method == "POST":
         body = json.loads(request.body)
-        user = authenticate(username=body['email'], password=body['password'])
+        user = authenticate(email=body['email'], password=body['password'])
         if user is not None:
             login(request, user)
-            return JsonResponse({'Success': 'Logged In'})
+            user_serializer = UserSerializer(user).data
+            
+            return JsonResponse({'user': user_serializer})
         else:
             return JsonResponse({'error': "Invalid email or password."})       
 
 
 def logout_request(request):
     logout(request)
-    return JsonResponse({'Success': 'Logged Out'})
+    return JsonResponse({'success': 'Logged Out'})
