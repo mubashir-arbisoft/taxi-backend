@@ -12,8 +12,9 @@ urlpatterns = [
     path('api/login/', views.login_request, name="login"),
     path('api/logout/', views.logout_request, name="logout"),
     path('api/cars', views.CarsList.as_view(), name='cars_list'),
-    path('api/booking/create/', views.BookingDetail.as_view(), name='create_booking'),
+    path('api/booking/', views.BookingList.as_view(), name='create_booking'),
     path('api/bookings', views.BookingList.as_view(), name='bookings'),
+    path('api/payment', views.create_checkout_session, name='payment'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

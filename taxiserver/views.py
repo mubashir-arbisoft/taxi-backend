@@ -2,6 +2,7 @@ from django.shortcuts import render
 import datetime
 import json
 import pytz
+import stripe
 
 from asgiref.sync import AsyncToSync
 
@@ -30,6 +31,42 @@ from taxiserver.models import User, Car, Booking
 from taxiserver.serializers import UserSerializer, CarsSerializer, BookingSerializer
 
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
+YOUR_DOMAIN = 'http://localhost:3000'
+
+def create_checkout_session():
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+                    'price': '{{PRICE_ID}}',
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            success_url=YOUR_DOMAIN + '?success=true',
+            cancel_url=YOUR_DOMAIN + '?canceled=true',
+        )
+    except Exception as e:
+        return str(e)
+
+    return redirect(checkout_session.url, code=303)
+
+
+def stripe_payment(request):
+    if request.method == 'POST':
+        # Get the payment token ID submitted by the form
+        stripe.api_key = 'sk_test_51M8sO4KV3JdLpOOyNi8FGx9K4mI9Ah5NtCF9MiwKwLXwRwX1errFRVEVYDQNTsyIEJkNDrO5qIXxSMRJoVdKavgG00vduQ6wIP'
+        booking = Booking.object.get(id=request.data['id'])
+        intent = stripe.PaymentIntent.create(
+        amount=booking.price,
+        currency='usd',
+        )
+        client_secret = intent.client_secret
+
+
+
 class CarsList(generics.ListCreateAPIView):
     serializer_class = CarsSerializer
     queryset = Car.objects.all()
@@ -37,6 +74,7 @@ class CarsList(generics.ListCreateAPIView):
 class BookingDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BookingSerializer
     queryset = Booking.objects.all()
+    
 
 class BookingList(generics.ListCreateAPIView):
     serializer_class = BookingSerializer
@@ -85,3 +123,5 @@ def login_request(request):
 def logout_request(request):
     logout(request)
     return JsonResponse({'success': 'Logged Out'})
+
+

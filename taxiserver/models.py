@@ -92,5 +92,6 @@ class Booking(models.Model):
     user = models.ForeignKey(User, to_field='email', null=False, on_delete=models.CASCADE)
     car = models.ForeignKey(Car, to_field='name', null=False, on_delete=models.CASCADE)
     date = models.DateTimeField()
+    price = models.FloatField(default=1)
     is_active = models.BooleanField(default=False)
     
