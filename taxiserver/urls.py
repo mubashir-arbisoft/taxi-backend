@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/booking/', views.BookingList.as_view(), name='create_booking'),
     path('api/bookings', views.BookingList.as_view(), name='bookings'),
     path('api/payment', views.create_checkout_session, name='payment'),
+    path('api/secret/', views.stripe_payment, name='secret'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
