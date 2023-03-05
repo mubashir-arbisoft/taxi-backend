@@ -27,8 +27,9 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from taxiserver.models import User, Car, Booking
-from taxiserver.serializers import UserSerializer, CarsSerializer, BookingSerializer
+from taxiserver.models import User, Car, Booking, CarType
+from taxiserver.serializers import UserSerializer,  BookingSerializer, CarTypeSerializer
+
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -58,18 +59,23 @@ def stripe_payment(request):
     if request.method == 'POST':
         # Get the payment token ID submitted by the form
         stripe.api_key = 'sk_test_51M8sO4KV3JdLpOOyNi8FGx9K4mI9Ah5NtCF9MiwKwLXwRwX1errFRVEVYDQNTsyIEJkNDrO5qIXxSMRJoVdKavgG00vduQ6wIP'
-        booking = Booking.object.get(id=request.data['id'])
+        booking = Booking.objects.get(id=json.loads(request.body)['id'])
+        #intent = stripe.PaymentIntent.create(
+        #amount=int(booking.price * 100),
+        #currency='usd',
+        #)
         intent = stripe.PaymentIntent.create(
-        amount=booking.price,
+        amount=50,
         currency='usd',
         )
         client_secret = intent.client_secret
+        return JsonResponse({'clientSecret': client_secret})
 
 
 
-class CarsList(generics.ListCreateAPIView):
-    serializer_class = CarsSerializer
-    queryset = Car.objects.all()
+class CarTypeList(generics.ListCreateAPIView):
+    serializer_class = CarTypeSerializer
+    queryset = CarType.objects.all()
 
 class BookingDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BookingSerializer
@@ -79,7 +85,6 @@ class BookingDetail(generics.RetrieveUpdateDestroyAPIView):
 class BookingList(generics.ListCreateAPIView):
     serializer_class = BookingSerializer
     queryset = Booking.objects.all()
-
 
 # Create your views here.
 class RegisterDriver(APIView):
@@ -105,23 +110,19 @@ def register_user(request):
         print(e)
         return JsonResponse({'error': "Username or Email already exists"})
 
-
 @ensure_csrf_cookie
 def login_request(request):
     if request.method == "POST":
         body = json.loads(request.body)
-        user = authenticate(email=body['email'], password=body['password'])
+        user = authenticate(request, email=body['email'], password=body['password'])
         if user is not None:
             login(request, user)
+    
             user_serializer = UserSerializer(user).data
-            
             return JsonResponse({'user': user_serializer})
         else:
             return JsonResponse({'error': "Invalid email or password."})       
 
-
 def logout_request(request):
     logout(request)
     return JsonResponse({'success': 'Logged Out'})
-
-

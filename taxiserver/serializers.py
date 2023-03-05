@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from taxiserver.models import User, Car, Booking
+from taxiserver.models import User, Car, Booking, CarType
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -7,14 +7,30 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('name', 'email', 'is_driver')
 
 
-class CarsSerializer(serializers.ModelSerializer):
+class CarTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Car
+        model = CarType
         fields = ('name', 'price', 'seats', 'large_suitcases', 'carry_on_bags', 'id')
 
 
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = ('user', 'car', 'date', 'id', 'price')
+        fields = ('user', 'car_type', 'time', 'id', 'price', 'num_of_passengers',
+        'booking_for_another',
+        'passenger_firstname',
+        'passenger_lastname',
+        'passenger_phone',
+        'flight_no',
+        'name_board',
+        'additional_req',
+        'start_geo_lt',
+        'start_geo_ln',
+        'start_addr',
+        'end_geo_lt',
+        'end_geo_ln',
+        'end_addr',
+        'firstname',
+        'lastname',
+        'phone')
 
